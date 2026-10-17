@@ -105,10 +105,22 @@ function render(){
  $('historyStatus').textContent=rows.length>500?`Showing first 500 of ${rows.length} matching records.`:`Showing ${rows.length} record(s). Saved in this browser on this device.`;
 }
 function exportRows(){return filtered().map(r=>({'Date/Time':localDate(r.timestamp),'Platform':r.platform||'','Batch':r.batch||'','QR Code':r.qrCode,'Location Name':r.locationName,'Activity':r.activity,'Operator':r.operator,'Notes':r.notes}))}
-function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
-function csvExport(){const rows=exportRows();if(!rows.length){alert('Walang records na ie-export.');return}const keys=Object.keys(rows[0]);const csv=[keys,...rows.map(r=>keys.map(k=>r[k]??''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');download(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.csv')}
-function xlsxExport(){const rows=exportRows();if(!rows.length){alert('Walang records na ie-export.');return}if(!window.XLSX){alert('Hindi ma-load ang Excel export library. Gumamit muna ng CSV.');return}const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:22},{wch:14},{wch:12},{wch:28},{wch:24},{wch:18},{wch:20},{wch:32}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Inventory History');XLSX.writeFile(wb,'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.xlsx')}
-function backup(){download(new Blob([JSON.stringify({app:'ErfCaps Inventory',version:2,exportedAt:nowISO(),records},null,2)],{type:'application/json'}),'erfcaps-inventory-backup-'+new Date().toISOString().slice(0,10)+'.json')}
+function download(blob,name){
+ // Android Chrome-compatible download: keep the Blob URL alive longer and provide visible feedback.
+ try {
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;a.rel='noopener';a.style.display='none';document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},60000);
+  $('historyStatus').textContent='Sinimulan ang download: '+name+'. Tingnan ang Chrome > Downloads.';
+ } catch(err) {
+  $('historyStatus').textContent='Hindi nasimulan ang download: '+(err.message||err);
+  alert('Hindi ma-download ang file. Subukan sa Chrome at tingnan ang Downloads. Detalye: '+(err.message||err));
+ }
+}
+function csvExport(){try{const rows=exportRows();if(!rows.length){alert('Walang records na ie-export. I-clear ang search/filter o mag-save muna ng record.');return}const keys=Object.keys(rows[0]);const csv=[keys,...rows.map(r=>keys.map(k=>r[k]??''))].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');download(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.csv')}catch(err){alert('CSV export error: '+(err.message||err))}}
+function xlsxExport(){try{const rows=exportRows();if(!rows.length){alert('Walang records na ie-export. I-clear ang search/filter o mag-save muna ng record.');return}if(!window.XLSX){alert('Hindi ma-load ang Excel export library. Suriin ang internet o gumamit muna ng CSV.');return}const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:22},{wch:14},{wch:12},{wch:28},{wch:24},{wch:18},{wch:20},{wch:32}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Inventory History');const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});download(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.xlsx')}catch(err){alert('Excel export error: '+(err.message||err))}}
+function backup(){try{download(new Blob([JSON.stringify({app:'ErfCaps Inventory',version:2,exportedAt:nowISO(),records},null,2)],{type:'application/json'}),'erfcaps-inventory-backup-'+new Date().toISOString().slice(0,10)+'.json')}catch(err){alert('Backup error: '+(err.message||err))}}
 $('startBtn').addEventListener('click',startScanner);$('stopBtn').addEventListener('click',stopScanner);$('saveBtn').addEventListener('click',saveRecord);
 $('clearFormBtn').addEventListener('click',()=>{$('qrValue').value='';$('locationName').value='';$('notes').value='';setStatus('Handa nang mag-scan.')});
 $('platform').addEventListener('change',updateSelection);$('batch').addEventListener('change',updateSelection);$('filterPlatform').addEventListener('change',render);$('filterBatch').addEventListener('change',render);
