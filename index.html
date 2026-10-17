@@ -50,7 +50,7 @@ input,select{width:100%;padding:12px;border:1px solid #cbd8d0;border-radius:10px
 <h2>3. Manual record (optional)</h2>
 <label for="qrValue">QR code value / Location code</label><input id="qrValue" placeholder="Lalabas dito ang na-scan na code">
 <label for="scanType">Uri ng scan</label><select id="scanType"><option>Picking</option><option>Checking</option><option>Dispatched</option></select>
-<div class="row"><div><label for="locationArea">Location</label><select id="locationArea"><option>Staging Area</option><option>Docking Area</option></select></div><div><label for="locationName">Lane</label><select id="locationName"><option value="Lane 1">Lane 1</option><option value="Lane 2">Lane 2</option><option value="Lane 3">Lane 3</option><option value="Lane 4">Lane 4</option><option value="Lane 5">Lane 5</option><option value="Lane 6">Lane 6</option><option value="Lane 7">Lane 7</option><option value="Lane 8">Lane 8</option></select></div></div>
+<div class="row" id="locationLaneFields"><div><label for="locationArea">Location</label><select id="locationArea"><option>Staging Area</option><option>Docking Area</option></select></div><div><label for="locationName">Lane</label><select id="locationName"><option value="Lane 1">Lane 1</option><option value="Lane 2">Lane 2</option><option value="Lane 3">Lane 3</option><option value="Lane 4">Lane 4</option><option value="Lane 5">Lane 5</option><option value="Lane 6">Lane 6</option><option value="Lane 7">Lane 7</option><option value="Lane 8">Lane 8</option></select></div></div>
 <div><label for="operator">Operator (optional)</label><input id="operator" placeholder="Pangalan"></div>
 <label for="notes">Notes (optional)</label><input id="notes" placeholder="Hal. checking, picking, etc.">
 <div class="row" style="margin-top:12px"><button id="saveBtn" class="primary">Save Manual Record</button><button id="clearFormBtn" class="secondary">Clear Form</button></div>
@@ -84,8 +84,9 @@ function setStatus(msg){$('scanStatus').textContent=msg}
 function selectedPlatform(){return $('platform').value}
 function selectedBatch(){return $('batch').value}
 function updateSelection(){$('currentSelection').textContent=selectedPlatform()+' • '+selectedBatch()}
+function updateLocationLaneVisibility(){const isPicking=$('scanType').value==='Picking';$('locationLaneFields').hidden=isPicking}
 function addRecord(qr,manual=false){
- const r={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),timestamp:nowISO(),platform:selectedPlatform(),batch:selectedBatch(),qrCode:qr,locationName:$('locationName').value.trim(),locationArea:$('locationArea').value,scanType:$('scanType').value,activity:$('scanType').value,operator:$('operator').value.trim(),notes:$('notes').value.trim()};
+ const r={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),timestamp:nowISO(),platform:selectedPlatform(),batch:selectedBatch(),qrCode:qr,locationName:$('scanType').value==='Picking'?'':$('locationName').value.trim(),locationArea:$('scanType').value==='Picking'?'':$('locationArea').value,scanType:$('scanType').value,activity:$('scanType').value,operator:$('operator').value.trim(),notes:$('notes').value.trim()};
  records.unshift(r);persist();$('qrValue').value=qr;
  if(!manual){setStatus('Awtomatikong na-save: '+qr+'\nPlatform: '+r.platform+' • '+r.batch);if(navigator.vibrate)navigator.vibrate(100)}else setStatus('Na-save ang manual record: '+qr);
 }
@@ -126,12 +127,12 @@ function xlsxExport(){try{const rows=exportRows();if(!rows.length){alert('Walang
 function backup(){try{download(new Blob([JSON.stringify({app:'ErfCaps Inventory',version:3,exportedAt:nowISO(),records},null,2)],{type:'application/json'}),'erfcaps-inventory-backup-'+new Date().toISOString().slice(0,10)+'.json')}catch(err){alert('Backup error: '+(err.message||err))}}
 $('startBtn').addEventListener('click',startScanner);$('stopBtn').addEventListener('click',stopScanner);$('saveBtn').addEventListener('click',saveRecord);
 $('clearFormBtn').addEventListener('click',()=>{$('qrValue').value='';$('notes').value='';setStatus('Handa nang mag-scan.')});
-$('platform').addEventListener('change',updateSelection);$('batch').addEventListener('change',updateSelection);$('filterPlatform').addEventListener('change',render);$('filterBatch').addEventListener('change',render);
+$('platform').addEventListener('change',updateSelection);$('batch').addEventListener('change',updateSelection);$('scanType').addEventListener('change',updateLocationLaneVisibility);$('filterPlatform').addEventListener('change',render);$('filterBatch').addEventListener('change',render);
 $('searchBox').addEventListener('input',render);$('csvBtn').addEventListener('click',csvExport);$('xlsxBtn').addEventListener('click',xlsxExport);$('jsonBtn').addEventListener('click',backup);
 $('historyBody').addEventListener('click',e=>{const id=e.target?.dataset?.delete;if(id&&confirm('I-delete ang record na ito?')){records=records.filter(r=>r.id!==id);persist()}});
 $('deleteAllBtn').addEventListener('click',()=>{if(confirm('Sigurado ka bang buburahin lahat ng records? Mag-backup muna kung kailangan.')){records=[];persist()}});
 $('restoreFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const incoming=Array.isArray(data)?data:data.records;if(!Array.isArray(incoming))throw new Error('Hindi valid na backup file');if(confirm('Idadagdag ang '+incoming.length+' records sa kasalukuyang history?')){const ids=new Set(records.map(r=>r.id));incoming.forEach(r=>{if(!r.id||ids.has(r.id))r.id='restore-'+Date.now()+'-'+Math.random();records.push(r)});persist();alert('Restore complete.')}}catch(err){alert('Hindi ma-restore: '+err.message)}e.target.value=''});
-window.addEventListener('beforeunload',()=>{if(scanning)stopScanner()});updateSelection();render();
+window.addEventListener('beforeunload',()=>{if(scanning)stopScanner()});updateSelection();updateLocationLaneVisibility();render();
 })();
 </script>
 </body>
