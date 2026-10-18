@@ -5,526 +5,388 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#123b32">
-<title>Erf Care Inventory</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<title>ErfCaps Inventory</title>
 <style>
-:root{--green:#123b32;--mint:#e9f4ef;--line:#d7e1dc;--text:#172923;--muted:#5c6b65;--red:#a92e2e}
-*{box-sizing:border-box}
-body{margin:0;background:#f3f6f4;color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
-.top{background:var(--green);color:white;padding:22px 16px}
-.top h1{margin:0;font-size:25px}
-.top p{margin:4px 0 0;color:#d9ebe4}
-.wrap{max-width:1100px;margin:auto;padding:14px}
-.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #102c2010}
-.panel h2{font-size:18px;margin:0 0 12px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-label{display:block;font-size:13px;font-weight:700;margin:8px 0 5px;color:#33473f}
-input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #c7d4cd;border-radius:9px;background:white;color:var(--text)}
-button{font:inherit;font-weight:700;border:0;border-radius:9px;padding:11px 14px;cursor:pointer}
-button:disabled{opacity:.5}
-.primary{background:var(--green);color:white}
-.soft{background:var(--mint);color:var(--green)}
-.danger{background:#ffeded;color:var(--red)}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.hint{color:var(--muted);font-size:13px}
-.status{margin-top:10px;padding:10px;border-radius:8px;background:#f2f6f3;white-space:pre-wrap;overflow-wrap:anywhere}
-.hide{display:none!important}
-#reader{max-width:440px;margin:12px auto}
-.tablewrap{overflow:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{background:#edf4f0}
-.pill{background:var(--mint);padding:3px 7px;border-radius:99px;font-size:12px}
-.manual{display:block;margin-top:8px;padding:12px;background:#e9f7ee;border:1px solid #a7d4b6;border-radius:9px;color:#14532d;overflow-wrap:anywhere}
-@media(max-width:600px){.grid{grid-template-columns:1fr}.wrap{padding:10px}.panel{padding:13px}.top{padding:18px 14px}}
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#17231f;background:#f3f6f4}
+*{box-sizing:border-box}body{margin:0}header{background:#123b32;color:white;padding:18px 16px}
+header h1{font-size:1.25rem;margin:0 0 5px}header p{margin:0;font-size:.9rem;opacity:.88}
+main{max-width:760px;margin:auto;padding:14px;display:grid;gap:14px}
+.card{background:#fff;border:1px solid #dce5df;border-radius:16px;padding:15px;box-shadow:0 2px 8px #1028200b}
+h2{font-size:1.03rem;margin:0 0 12px}
+button,.filebtn{border:0;border-radius:11px;padding:12px 14px;font-size:.95rem;font-weight:650;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:#176b52;color:white}.secondary{background:#e5eee9;color:#123b32}.danger{background:#fff0ef;color:#a12c24}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:0}
+label{display:block;font-size:.88rem;font-weight:600;margin:10px 0 5px}
+input,select{width:100%;padding:12px;border:1px solid #cbd8d0;border-radius:10px;font:inherit;background:white}
+#locationName,#scanType{width:auto;min-width:115px;max-width:150px;padding:8px 10px}
+#reader{width:100%;overflow:hidden;border-radius:12px}#reader video{border-radius:12px;max-width:100%}
+.muted{color:#5d6c64;font-size:.86rem}.status{padding:10px 12px;border-radius:10px;background:#eef5f0;margin-top:10px;font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f1f6f3;border-radius:11px;padding:10px}.stat strong{display:block;font-size:1.3rem}.stat span{font-size:.76rem;color:#5d6c64}
+.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.84rem}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e5ebe7;white-space:nowrap}th{background:#f5f8f6}
+.itemcode{font-weight:700;overflow-wrap:anywhere;white-space:normal}
+.hidden{display:none!important}.tiny{font-size:.78rem}footer{text-align:center;padding:0 18px 22px;color:#65736b;font-size:.8rem}
+.selection{background:#f1f6f3;border:1px solid #dce5df;border-radius:12px;padding:12px;margin:10px 0}
 </style>
 </head>
 <body>
-<header class="top">
-<h1>📦 Erf Care Inventory</h1>
-<p>QR & Barcode Scanning • Picking • Checking • Dispatch</p>
-</header>
-
-<main class="wrap">
-<section class="panel">
-<h2>1. Shipment at Scan Details</h2>
-<div class="grid">
-<div><label for="platform">Platform</label>
-<select id="platform">
-<option>Lazada</option><option>Shopee</option><option>TikTok</option><option>NC</option><option>Regular</option>
-</select></div>
-
-<div><label for="batch">Batch</label>
-<select id="batch">
-<option>1</option><option>2</option><option>3</option><option>4</option>
-</select></div>
-
-<div><label for="type">Scan Type</label>
-<select id="type">
-<option>Picking</option><option>Checking</option><option>Dispatched</option>
-</select></div>
-
-<div><label for="operator">Operator</label>
-<input id="operator" placeholder="Pangalan ng operator"></div>
-
-<div id="locWrap"><label for="area">Location Area</label>
-<select id="area"><option>Staging Area</option><option>Docking Area</option></select></div>
-
-<div id="laneWrap"><label for="lane">Lane</label>
-<select id="lane">
-<option value="1">Lane 1</option><option value="2">Lane 2</option>
-<option value="3">Lane 3</option><option value="4">Lane 4</option>
-<option value="5">Lane 5</option><option value="6">Lane 6</option>
-<option value="7">Lane 7</option><option value="8">Lane 8</option>
-</select></div>
-
-<div><label for="qr">Tracking Number / QR / Barcode</label>
-<input id="qr" autocomplete="off" placeholder="I-scan o ilagay ang tracking number"></div>
-
-<div><label for="itemDescription">Item Description</label>
-<input id="itemDescription" placeholder="Description ng item"></div>
-
-<div><label for="qty">Qty</label>
-<input id="qty" type="number" min="1" step="1" placeholder="Dami"></div>
-
-<div><label for="consigneeName">Consignee Name</label>
-<input id="consigneeName" placeholder="Pangalan ng tatanggap"></div>
-
-<div><label for="notes">Notes (optional)</label>
-<input id="notes" placeholder="Karagdagang detalye"></div>
+<header><h1>📦 ErfCaps Inventory</h1><p>Automatic QR/barcode scan • Platform at batch tracking • CSV at Excel export</p></header>
+<main>
+<section class="card">
+<h2>1. Piliin ang platform at batch</h2>
+<div class="row">
+<div><label for="platform">Platform</label><select id="platform"><option>Lazada</option><option>Shopee</option><option>TikTok</option><option>NC</option><option>Regular</option></select></div>
+<div><label for="batch">Batch</label><select id="batch"><option>Batch 1</option><option>Batch 2</option><option>Batch 3</option><option>Batch 4</option></select></div>
 </div>
-
-<div class="actions">
-<button class="primary" id="add">Save Record</button>
-<button class="soft" id="startScan">Start Camera Scanner</button>
-<button class="soft" id="stopScan">Stop Scanner</button>
-</div>
-
-<div id="reader" class="hide"></div>
-<div id="status" class="status" role="status">Handa na. Pumili ng platform, batch at scan type.</div>
-
-<label for="scanDetails">Decoded QR / Barcode Details</label>
-<textarea id="scanDetails" rows="5" readonly placeholder="Lalabas dito ang nabasang data."></textarea>
-
-<p class="hint">
-Kapag JSON ang laman ng QR, susubukan ng app na kunin ang tracking number, item description, qty at consignee. Kung tracking number lang ang laman, kailangan ilagay ang ibang detalye nang mano-mano o gumamit ng awtorisadong shipment database/API. Hindi hinuhulaan ng app ang detalye.
-</p>
+<div class="selection"><strong id="currentSelection">Lazada • Batch 1</strong><p class="muted" style="margin:5px 0 0">Ang napiling platform at batch ay itatala sa bawat bagong scan.</p></div>
 </section>
 
-<section class="panel">
-<h2>2. History at Export</h2>
-<div class="grid">
-<div><label for="search">Search</label>
-<input id="search" placeholder="Tracking, item, consignee, operator..."></div>
-<div><label for="filterType">Filter Scan Type</label>
-<select id="filterType">
-<option value="">Lahat</option><option>Picking</option><option>Checking</option><option>Dispatched</option>
-</select></div>
-</div>
+<section class="card">
+<h2>2. QR / Parcel Barcode Scanner</h2>
+<p class="muted">Pindutin ang Start Scanner. Itapat ang QR code o barcode sa gitna ng camera. Awtomatikong mase-save ang unang mabasang code. Hindi mase-save muli ang duplicate code.</p>
+<div id="reader"></div>
+<div class="row" style="margin-top:10px"><button id="startBtn" class="primary">Start Scanner</button><button id="stopBtn" class="secondary" disabled>Stop Scanner</button></div>
+<div id="scanStatus" class="status">Handa nang mag-scan. Payagan ang camera permission kapag tinanong.</div>
+</section>
 
-<div class="actions">
-<button class="soft" id="csv">CSV Export</button>
-<button class="soft" id="excel">Excel Export</button>
-<button class="soft" id="backup">JSON Backup</button>
-<button class="soft" id="restoreBtn">Restore Backup</button>
-<input type="file" id="restoreFile" accept="application/json,.json" class="hide">
-<button class="danger" id="clear">Delete All Records</button>
-</div>
+<section class="card">
+<h2>3. Manual record (optional)</h2>
+<label for="qrValue">QR code value / Barcode / Tracking number</label><input id="qrValue" placeholder="Lalabas dito ang na-scan na code">
+<label for="scanType">Uri ng scan</label><select id="scanType"><option>Picking</option><option>Checking</option><option>Dispatched</option></select>
+<div class="row" id="locationLaneFields"><div><label for="locationArea">Location</label><select id="locationArea"><option>Staging Area</option><option>Docking Area</option></select></div><div><label for="locationName">Lane</label><select id="locationName"><option value="Lane 1">Lane 1</option><option value="Lane 2">Lane 2</option><option value="Lane 3">Lane 3</option><option value="Lane 4">Lane 4</option><option value="Lane 5">Lane 5</option><option value="Lane 6">Lane 6</option><option value="Lane 7">Lane 7</option><option value="Lane 8">Lane 8</option></select></div></div>
+<div><label for="operator">Operator (optional)</label><input id="operator" placeholder="Pangalan"></div>
+<label for="notes">Notes (optional)</label><input id="notes" placeholder="Hal. checking, picking, etc.">
+<div class="row" style="margin-top:12px"><button id="saveBtn" class="primary">Save Manual Record</button><button id="clearFormBtn" class="secondary">Clear Form</button></div>
+<p class="muted tiny">Hindi awtomatikong mababawasan o madaragdagan ang stock; scan history at tracking muna ang app na ito.</p>
+</section>
 
-<div id="exportArea" class="status">Lalabas dito ang download link o kopyahing export data.</div>
-<div id="count" class="hint"></div>
-
-<div class="tablewrap">
-<table>
-<thead><tr>
-<th>Date/Time</th><th>Tracking / QR</th><th>Item Description</th><th>Qty</th>
-<th>Consignee</th><th>Code Format</th><th>Platform</th><th>Batch</th>
-<th>Scan Type</th><th>Location</th><th>Operator</th><th>Notes</th><th>Details</th><th>Action</th>
-</tr></thead>
-<tbody id="rows"></tbody>
-</table>
-</div>
+<section class="card">
+<h2>4. History at Export</h2>
+<div class="statgrid"><div class="stat"><strong id="totalCount">0</strong><span>Total records</span></div><div class="stat"><strong id="todayCount">0</strong><span>Today</span></div><div class="stat"><strong id="locationCount">0</strong><span>Unique QR codes</span></div></div>
+<div class="row"><div><label for="filterPlatform">Filter platform</label><select id="filterPlatform"><option value="">All platforms</option><option>Lazada</option><option>Shopee</option><option>TikTok</option><option>NC</option><option>Regular</option></select></div><div><label for="filterBatch">Filter batch</label><select id="filterBatch"><option value="">All batches</option><option>Batch 1</option><option>Batch 2</option><option>Batch 3</option><option>Batch 4</option></select></div></div>
+<label for="searchBox">Search history</label><input id="searchBox" placeholder="Search QR, platform, batch, location, operator, notes">
+<div class="row" style="margin-top:12px"><button id="csvBtn" class="secondary">Download CSV</button><button id="xlsxBtn" class="primary">Download Excel (.xlsx)</button></div>
+<div class="row" style="margin-top:8px"><button id="jsonBtn" class="secondary">Backup data (JSON)</button><label class="filebtn secondary" style="text-align:center">Restore JSON backup<input id="restoreFile" type="file" accept=".json,application/json" class="hidden"></label></div>
+<div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Date / Time</th><th>Platform</th><th>Batch</th><th>QR Code</th><th>Location Area</th><th>Uri ng Scan</th><th>Lane</th><th>Operator</th><th>Notes</th><th></th></tr></thead><tbody id="historyBody"></tbody></table></div>
+<p id="historyStatus" class="muted">Naka-save ang records sa storage ng browser na ito sa cellphone.</p>
+<button id="deleteAllBtn" class="danger" style="margin-top:10px">Delete All Records</button>
 </section>
 </main>
+<footer>Tip: I-export ang CSV/Excel o gumawa ng JSON backup nang regular. Panatilihin ang backup bago mag-clear ng browser data.</footer>
 
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-(()=>{
-'use strict';
+(() => {
 const KEY='qrLocationInventory.records.v1';
+let records=loadRecords(),scanner=null,scanning=false,lastScan='',lastScanAt=0;
 const $=id=>document.getElementById(id);
-let records=[],scanner=null,scanBusy=false;
 
-function getQR(r){
- return String(r.qr??r.qrCode??r.trackingNumber??'');
-}
-function getType(r){
- return r.type||r.scanType||r.activity||'';
-}
-function getTime(r){
- return r.time||r.timestamp||new Date().toISOString();
-}
-function load(){
- try{
-  const data=JSON.parse(localStorage.getItem(KEY)||'[]');
-  records=Array.isArray(data)?data:[];
- }catch(e){records=[];}
-}
-function save(){
- try{
-  localStorage.setItem(KEY,JSON.stringify(records));
-  render();
- }catch(e){
-  say('Hindi ma-save sa browser storage. Mag-backup at tingnan kung puno ang storage.');
- }
-}
-function say(message){$('status').textContent=message}
-function esc(value){
- return String(value??'').replace(/[&<>"']/g,c=>({
-  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
- }[c]));
-}
-function updateLocation(){
- const picking=$('type').value==='Picking';
- $('locWrap').classList.toggle('hide',picking);
- $('laneWrap').classList.toggle('hide',picking);
-}
-function locationText(r){
- const type=getType(r);
- if(type==='Picking')return '—';
- const area=r.area||r.locationArea||'';
- let lane=r.lane||r.locationName||'';
- lane=String(lane).replace(/^Lane\s*/i,'');
- return area+(lane?' / Lane '+lane:'');
-}
-function parseDetails(raw){
- const result={
-  trackingNumber:raw,
-  itemDescription:'',
-  qty:'',
-  consigneeName:''
- };
- try{
-  const obj=JSON.parse(raw);
-  if(obj&&typeof obj==='object'){
-   result.trackingNumber=obj.trackingNumber||obj.tracking_number||obj.waybill||obj.tracking||obj.awb||obj.orderTrackingNumber||raw;
-   result.itemDescription=obj.itemDescription||obj.item_description||obj.description||obj.item||obj.productName||'';
-   result.qty=obj.qty??obj.quantity??obj.Qty??'';
-   result.consigneeName=obj.consigneeName||obj.consignee_name||obj.consignee||obj.recipient||obj.receiver||obj.customerName||'';
-   return result;
-  }
- }catch(e){}
- try{
-  const url=new URL(raw);
-  const get=(...names)=>{
-   for(const name of names){
-    const val=url.searchParams.get(name);
-    if(val)return val;
-   }
-   return '';
-  };
-  result.trackingNumber=get('trackingNumber','tracking_number','waybill','tracking','awb')||raw;
-  result.itemDescription=get('itemDescription','item_description','description','item','productName');
-  result.qty=get('qty','quantity','Qty');
-  result.consigneeName=get('consigneeName','consignee_name','consignee','recipient','receiver','customerName');
- }catch(e){}
- return result;
-}
-function duplicate(qr){
- const normalized=String(qr||'').trim().toLowerCase();
+function loadRecords(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(records));render()}
+function nowISO(){return new Date().toISOString()}
+function localDate(iso){const d=new Date(iso);return isNaN(d)?iso:d.toLocaleString()}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setStatus(msg){$('scanStatus').textContent=msg}
+function selectedPlatform(){return $('platform').value}
+function selectedBatch(){return $('batch').value}
+function updateSelection(){$('currentSelection').textContent=selectedPlatform()+' • '+selectedBatch()}
+function updateLocationLaneVisibility(){$('locationLaneFields').hidden=$('scanType').value==='Picking'}
+
+function findDuplicateQR(qr){
+ const normalized=String(qr||'').trim().toLocaleLowerCase();
  if(!normalized)return null;
- return records.find(r=>getQR(r).trim().toLowerCase()===normalized)||null;
+ return records.find(r=>String(r.qrCode||'').trim().toLocaleLowerCase()===normalized)||null;
 }
-function addRecord(value,format='Manual'){
- const raw=String(value??$('qr').value).trim();
- if(!raw){say('I-scan muna o ilagay ang tracking number.');return false;}
 
- const details=parseDetails(raw);
- const qr=String(details.trackingNumber||raw).trim();
- const old=duplicate(qr)||duplicate(raw);
- if(old){
-  say('⚠️ DUPLICATE SCAN!\nHindi na-save ang tracking/QR na ito dahil mayroon na sa history:\n'+qr);
+function addRecord(qr,manual=false){
+ const cleanQR=String(qr||'').trim();
+ if(!cleanQR)return false;
+ const duplicate=findDuplicateQR(cleanQR);
+ if(duplicate){
+  const when=duplicate.timestamp?localDate(duplicate.timestamp):'oras na hindi alam';
+  const message='DUPLICATE SCAN! Hindi na-save ang QR/barcode: '+cleanQR+'\nNa-scan na ito dati noong '+when+'.\nHindi mahalaga kung ibang platform, batch, o uri ng scan.';
+  setStatus('⚠️ '+message);
   if(navigator.vibrate)navigator.vibrate([180,80,180]);
+  if(manual)alert(message);
   return false;
  }
-
- if(!$('itemDescription').value.trim())$('itemDescription').value=details.itemDescription;
- if(!$('qty').value&&details.qty!=='')$('qty').value=details.qty;
- if(!$('consigneeName').value.trim())$('consigneeName').value=details.consigneeName;
-
- const type=$('type').value;
- const record={
-  id:globalThis.crypto?.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2),
-  time:new Date().toISOString(),
-  qr:qr,
-  trackingNumber:qr,
-  rawBarcode:raw,
-  itemDescription:$('itemDescription').value.trim(),
-  qty:$('qty').value,
-  consigneeName:$('consigneeName').value.trim(),
-  decodedDetails:details,
-  codeFormat:format,
-  platform:$('platform').value,
-  batch:$('batch').value,
-  type:type,
-  area:type==='Picking'?'':$('area').value,
-  lane:type==='Picking'?'':$('lane').value,
+ const r={
+  id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),
+  timestamp:nowISO(),
+  platform:selectedPlatform(),
+  batch:selectedBatch(),
+  qrCode:cleanQR,
+  locationName:$('scanType').value==='Picking'?'':$('locationName').value.trim(),
+  locationArea:$('scanType').value==='Picking'?'':$('locationArea').value,
+  scanType:$('scanType').value,
+  activity:$('scanType').value,
   operator:$('operator').value.trim(),
   notes:$('notes').value.trim()
  };
-
- $('scanDetails').value=JSON.stringify({rawBarcode:raw,shipmentDetails:details},null,2);
- records.unshift(record);
- save();
- $('qr').value='';
- $('itemDescription').value='';
- $('qty').value='';
- $('consigneeName').value='';
- $('notes').value='';
- say('Na-save ang shipment record.\nTracking: '+qr+'\nPlatform: '+record.platform+' • Batch '+record.batch+'\nScan Type: '+record.type);
- if(navigator.vibrate)navigator.vibrate(100);
+ records.unshift(r);
+ persist();
+ $('qrValue').value=cleanQR;
+ if(!manual){
+  setStatus('Awtomatikong na-save: '+cleanQR+'\nPlatform: '+r.platform+' • '+r.batch);
+  if(navigator.vibrate)navigator.vibrate(100);
+ }else setStatus('Na-save ang manual record: '+cleanQR);
  return true;
 }
-function render(){
- const query=$('search').value.trim().toLowerCase();
- const filter=$('filterType').value;
- const shown=records.filter(r=>{
-  const values=[getQR(r),r.itemDescription,r.qty,r.consigneeName,r.operator,r.platform,r.batch,r.notes];
-  return (!query||values.some(v=>String(v??'').toLowerCase().includes(query)))&&
-         (!filter||getType(r)===filter);
- });
- $('count').textContent=shown.length+' record(s) shown • '+records.length+' total record(s)';
- $('rows').innerHTML=shown.map(r=>`<tr>
- <td>${esc(new Date(getTime(r)).toLocaleString())}</td>
- <td>${esc(getQR(r))}</td>
- <td>${esc(r.itemDescription||'')}</td>
- <td>${esc(r.qty??'')}</td>
- <td>${esc(r.consigneeName||'')}</td>
- <td>${esc(r.codeFormat||'Legacy')}</td>
- <td>${esc(r.platform||'')}</td>
- <td>${esc(r.batch||'')}</td>
- <td><span class="pill">${esc(getType(r))}</span></td>
- <td>${esc(locationText(r))}</td>
- <td>${esc(r.operator||'')}</td>
- <td>${esc(r.notes||'')}</td>
- <td><button class="soft" data-details="${esc(r.id)}">View</button></td>
- <td><button class="danger" data-delete="${esc(r.id)}">Delete</button></td>
- </tr>`).join('')||'<tr><td colspan="14">Wala pang record na tugma.</td></tr>';
-}
-function exportRows(){
- return records.map(r=>({
-  'Date/Time':new Date(getTime(r)).toLocaleString(),
-  'Tracking Number / QR':getQR(r),
-  'Item Description':r.itemDescription||'',
-  'Qty':r.qty??'',
-  'Consignee Name':r.consigneeName||'',
-  'Code Format':r.codeFormat||'Legacy',
-  'Platform':r.platform||'',
-  'Batch':r.batch||'',
-  'Scan Type':getType(r),
-  'Location Area':r.area||r.locationArea||'',
-  'Lane':r.lane||r.locationName||'',
-  'Operator':r.operator||'',
-  'Notes':r.notes||''
- }));
-}
-function csvText(){
- const rows=exportRows();
- const headers=Object.keys(rows[0]||{
-  'Date/Time':'','Tracking Number / QR':'','Item Description':'','Qty':'',
-  'Consignee Name':'','Code Format':'','Platform':'','Batch':'',
-  'Scan Type':'','Location Area':'','Lane':'','Operator':'','Notes':''
- });
- return '\ufeff'+[headers,...rows.map(r=>headers.map(h=>r[h]??''))]
- .map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
-}
-function showExport(content,name,mime){
- const area=$('exportArea');
- area.innerHTML='';
- const blob=new Blob([content],{type:mime});
- const url=URL.createObjectURL(blob);
- const link=document.createElement('a');
- link.href=url;
- link.download=name;
- link.className='manual';
- link.textContent='I-tap dito para i-download ang '+name;
- area.appendChild(link);
 
- const hint=document.createElement('p');
- hint.className='hint';
- hint.textContent='Kung hindi gumana ang download, puwede mong kopyahin ang data sa ibaba.';
- area.appendChild(hint);
-
- const textarea=document.createElement('textarea');
- textarea.rows=5;
- textarea.value=typeof content==='string'?content:'Excel file ito. Gamitin ang download link sa itaas.';
- area.appendChild(textarea);
-
- const copy=document.createElement('button');
- copy.className='soft';
- copy.textContent='Copy data';
- copy.onclick=async()=>{
-  try{
-   await navigator.clipboard.writeText(textarea.value);
-   hint.textContent='Nakopya ang text data.';
-  }catch(e){
-   textarea.focus();textarea.select();
-   hint.textContent='Na-select ang text. Gamitin ang Copy sa menu.';
-  }
- };
- area.appendChild(copy);
- say('Handa na ang export. Pindutin ang link sa History at Export.');
- area.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function csvExport(){
- if(!records.length){say('Wala pang records na ie-export.');return;}
- showExport(csvText(),'erf-care-records.csv','text/csv;charset=utf-8;');
-}
-function excelExport(){
- if(!records.length){say('Wala pang records na ie-export.');return;}
- if(!window.XLSX){say('Hindi na-load ang Excel library. Subukan ang CSV export.');return;}
- try{
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(exportRows()),'Erf Care');
-  const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-  showExport(bytes,'erf-care-records.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
- }catch(e){say('May error sa Excel export. Subukan muna ang CSV.');}
-}
-function backup(){
- const data=JSON.stringify({app:'Erf Care Inventory',version:3,exportedAt:new Date().toISOString(),records},null,2);
- showExport(data,'erf-care-backup.json','application/json;charset=utf-8;');
-}
-
-$('add').onclick=()=>addRecord();
-$('type').onchange=updateLocation;
-$('search').oninput=render;
-$('filterType').onchange=render;
-$('csv').onclick=csvExport;
-$('excel').onclick=excelExport;
-$('backup').onclick=backup;
-
-$('rows').onclick=e=>{
- const detailButton=e.target.closest('[data-details]');
- if(detailButton){
-  const r=records.find(x=>String(x.id)===detailButton.dataset.details);
-  if(r){
-   $('scanDetails').value=JSON.stringify({
-    trackingNumber:getQR(r),
-    itemDescription:r.itemDescription||'',
-    qty:r.qty??'',
-    consigneeName:r.consigneeName||'',
-    decodedDetails:r.decodedDetails||null
-   },null,2);
-   say('Shipment details para sa '+getQR(r));
-  }
+/* QR at karaniwang parcel barcode scanner */
+async function startScanner(){
+ if(scanning)return;
+ if(!window.Html5Qrcode){
+  setStatus('Hindi ma-load ang scanner library. Suriin ang internet at i-refresh ang page.');
   return;
  }
- const deleteButton=e.target.closest('[data-delete]');
- if(!deleteButton)return;
- const r=records.find(x=>String(x.id)===deleteButton.dataset.delete);
- if(r&&confirm('Burahin ang record na '+getQR(r)+'?')){
-  records=records.filter(x=>x.id!==r.id);
-  save();
-  say('Na-delete ang record. Maaari na itong i-scan ulit.');
- }
-};
-
-$('clear').onclick=()=>{
- if(confirm('Sigurado ka bang buburahin LAHAT ng records? Mag-backup muna kung kailangan.')){
-  records=[];
-  save();
-  say('Nabura ang records sa browser na ito.');
- }
-};
-
-$('restoreBtn').onclick=()=>$('restoreFile').click();
-$('restoreFile').onchange=async e=>{
- const file=e.target.files[0];
- if(!file)return;
  try{
-  const data=JSON.parse(await file.text());
-  const incoming=Array.isArray(data)?data:data.records;
-  if(!Array.isArray(incoming))throw new Error('Invalid backup');
-  let added=0;
-  for(const item of incoming){
-   if(!item)continue;
-   const qr=getQR(item);
-   if(qr&&!duplicate(qr)){
-    if(!item.id)item.id=Date.now().toString(36)+Math.random().toString(36).slice(2);
-    records.push(item);
-    added++;
-   }
-  }
-  save();
-  say('Restore complete. '+added+' bagong record(s) naidagdag; hindi isinama ang duplicate QR.');
- }catch(err){
-  say('Hindi ma-restore. Pumili ng valid na Erf Care JSON backup.');
- }
- e.target.value='';
-};
-
-$('startScan').onclick=async()=>{
- if(scanBusy)return;
- if(!window.Html5Qrcode){say('Hindi na-load ang scanner. Suriin ang internet connection.');return;}
- try{
-  $('reader').classList.remove('hide');
+  $('reader').innerHTML='';
   const formats=[
    Html5QrcodeSupportedFormats.QR_CODE,
+   Html5QrcodeSupportedFormats.CODE_128,
+   Html5QrcodeSupportedFormats.CODE_39,
+   Html5QrcodeSupportedFormats.CODE_93,
+   Html5QrcodeSupportedFormats.CODABAR,
    Html5QrcodeSupportedFormats.EAN_13,
    Html5QrcodeSupportedFormats.EAN_8,
    Html5QrcodeSupportedFormats.UPC_A,
    Html5QrcodeSupportedFormats.UPC_E,
-   Html5QrcodeSupportedFormats.CODE_128,
-   Html5QrcodeSupportedFormats.CODE_39,
-   Html5QrcodeSupportedFormats.CODE_93,
    Html5QrcodeSupportedFormats.ITF,
    Html5QrcodeSupportedFormats.DATA_MATRIX,
    Html5QrcodeSupportedFormats.PDF_417,
    Html5QrcodeSupportedFormats.AZTEC
   ];
-  scanner=new Html5Qrcode('reader',{formatsToSupport:formats,verbose:false});
-  scanBusy=true;
+  scanner=new Html5Qrcode('reader',{
+   formatsToSupport:formats,
+   verbose:false,
+   useBarCodeDetectorIfSupported:false
+  });
+  lastScan='';
+  scanning=true;
+  $('startBtn').disabled=true;
+  $('stopBtn').disabled=false;
+  setStatus('Binubuksan ang camera. Itapat ang QR code o barcode sa gitna ng frame.');
   await scanner.start(
    {facingMode:'environment'},
-   {fps:10,qrbox:{width:260,height:180}},
-   (decoded,result)=>{
-    if(!scanBusy)return;
-    scanBusy=false;
-    const format=result?.result?.format?String(result.result.format):'QR/Barcode';
-    scanner.stop().catch(()=>{});
-    $('reader').classList.add('hide');
-    $('qr').value=decoded;
-    const parsed=parseDetails(decoded);
-    $('scanDetails').value=JSON.stringify({rawBarcode:decoded,shipmentDetails:parsed},null,2);
-    $('itemDescription').value=parsed.itemDescription;
-    $('qty').value=parsed.qty;
-    $('consigneeName').value=parsed.consigneeName;
-    addRecord(decoded,format);
+   {
+    fps:15,
+    qrbox:(width,height)=>{
+     const boxWidth=Math.min(Math.floor(width*.90),450);
+     const boxHeight=Math.min(Math.floor(height*.60),260);
+     return {width:boxWidth,height:boxHeight};
+    },
+    aspectRatio:1.0,
+    disableFlip:true
    },
-   ()=>{}
+   async(decodedText,result)=>{
+    if(!scanning)return;
+    const clean=String(decodedText||'').trim();
+    if(!clean||clean===lastScan)return;
+    lastScan=clean;
+    lastScanAt=Date.now();
+    $('qrValue').value=clean;
+    const format=result?.result?.format?.formatName||'QR/Barcode';
+    const saved=addRecord(clean,false);
+    setStatus((saved?'Na-scan at na-save':'Na-scan pero hindi na-save (duplicate)')+
+      '\nFormat: '+format+'\nCode: '+clean+
+      '\n\nPindutin ang Stop Scanner bago lumipat sa ibang parcel.');
+    if(navigator.vibrate)navigator.vibrate(saved?100:[180,80,180]);
+    await stopScanner();
+   },
+   ()=>{
+    if(lastScan&&Date.now()-lastScanAt>1500)lastScan='';
+   }
   );
-  scanBusy=false;
-  say('Naka-on ang camera. Itapat ang parcel QR/barcode sa frame.');
+  setStatus('Camera ready. Ilapit ang parcel nang humigit-kumulang 10–20 cm. Tiyaking malinaw at hindi makintab ang code.');
  }catch(e){
-  scanBusy=false;
-  $('reader').classList.add('hide');
-  say('Hindi mabuksan ang camera. Payagan ang camera permission at tiyaking HTTPS ang website.');
+  scanning=false;
+  $('startBtn').disabled=false;
+  $('stopBtn').disabled=true;
+  setStatus('Hindi masimulan ang scanner. Payagan ang Camera permission at tiyaking HTTPS ang website.\nDetalye: '+(e.message||e));
  }
-};
+}
 
-$('stopScan').onclick=async()=>{
- scanBusy=false;
- if(scanner){
-  try{await scanner.stop()}catch(e){}
-  try{scanner.clear()}catch(e){}
-  scanner=null;
+async function stopScanner(){
+ const oldScanner=scanner;
+ scanning=false;
+ scanner=null;
+ $('startBtn').disabled=false;
+ $('stopBtn').disabled=true;
+ if(oldScanner){
+  try{await oldScanner.stop()}catch(e){}
+  try{oldScanner.clear()}catch(e){}
  }
- $('reader').classList.add('hide');
- say('Huminto ang scanner.');
-};
+ setStatus('Scanner stopped. Puwede nang mag-scan ulit.');
+}
 
-load();
-updateLocation();
+function saveRecord(){
+ const qr=$('qrValue').value.trim();
+ if(!qr){alert('Mag-scan muna ng QR/barcode o ilagay ang code.');return}
+ if(addRecord(qr,true))$('notes').value='';
+}
+
+function filtered(){
+ const q=$('searchBox').value.trim().toLowerCase();
+ const p=$('filterPlatform').value,b=$('filterBatch').value;
+ return records.filter(r=>
+  (!p||(r.platform||'')===p)&&
+  (!b||(r.batch||'')===b)&&
+  (!q||[r.qrCode,r.platform,r.batch,r.locationArea,r.scanType,r.locationName,r.activity,r.operator,r.notes,r.timestamp].some(v=>String(v||'').toLowerCase().includes(q)))
+ );
+}
+
+function render(){
+ $('totalCount').textContent=records.length;
+ const today=new Date().toLocaleDateString();
+ $('todayCount').textContent=records.filter(r=>new Date(r.timestamp).toLocaleDateString()===today).length;
+ $('locationCount').textContent=new Set(records.map(r=>r.qrCode)).size;
+ const rows=filtered();
+ $('historyBody').innerHTML=rows.slice(0,500).map(r=>`<tr>
+ <td>${escapeHTML(localDate(r.timestamp))}</td>
+ <td>${escapeHTML(r.platform||'')}</td>
+ <td>${escapeHTML(r.batch||'')}</td>
+ <td class="itemcode">${escapeHTML(r.qrCode)}</td>
+ <td>${escapeHTML(r.locationArea||'')}</td>
+ <td>${escapeHTML(r.scanType||r.activity||'')}</td>
+ <td>${escapeHTML(r.locationName)}</td>
+ <td>${escapeHTML(r.operator)}</td>
+ <td>${escapeHTML(r.notes)}</td>
+ <td><button class="danger tiny" data-delete="${escapeHTML(r.id)}">Delete</button></td>
+ </tr>`).join('');
+ $('historyStatus').textContent=rows.length>500?
+  `Showing first 500 of ${rows.length} matching records.`:
+  `Showing ${rows.length} record(s). Saved in this browser on this device.`;
+}
+
+function exportRows(){
+ return filtered().map(r=>({
+  'Date/Time':localDate(r.timestamp),
+  'Platform':r.platform||'',
+  'Batch':r.batch||'',
+  'QR Code':r.qrCode,
+  'Location Area':r.locationArea||'',
+  'Scan Type':r.scanType||r.activity||'',
+  'Lane':r.locationName,
+  'Operator':r.operator,
+  'Notes':r.notes
+ }));
+}
+
+async function download(blob,name){
+ let shareError=null;
+ try{
+  const file=new File([blob],name,{type:blob.type||'application/octet-stream'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   $('historyStatus').textContent='Binubuksan ang share menu para ma-save ang '+name+'.';
+   try{
+    await navigator.share({files:[file],title:name,text:'ErfCaps Inventory export'});
+    $('historyStatus').textContent='Naipasa ang '+name+' sa share menu. Piliin ang Save to Files/Drive o ang app na gusto mong gamitin.';
+    return;
+   }catch(err){
+    if(err&&err.name==='AbortError'){
+     $('historyStatus').textContent='Kinansela ang share. Walang file na na-save; pindutin ulit ang export.';
+     return;
+    }
+    shareError=err;
+   }
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;a.rel='noopener';a.style.display='none';
+  document.body.appendChild(a);a.click();
+  $('historyStatus').textContent='Sinubukang i-download ang '+name+'. Tingnan ang Chrome menu (⋮) > Downloads.'+(shareError?' (Hindi pinayagan ang share; gumamit ng browser download.)':'');
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},120000);
+ }catch(err){
+  $('historyStatus').textContent='Hindi ma-export ang file: '+(err.message||err);
+  alert('Hindi ma-export ang file. Subukan sa Chrome at tingnan ang Downloads. Detalye: '+(err.message||err));
+ }
+}
+
+function csvExport(){
+ try{
+  const rows=exportRows();
+  if(!rows.length){alert('Walang records na ie-export. I-clear ang search/filter o mag-save muna ng record.');return}
+  const keys=Object.keys(rows[0]);
+  const csv=[keys,...rows.map(r=>keys.map(k=>r[k]??''))]
+   .map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  download(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),
+   'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.csv');
+ }catch(err){alert('CSV export error: '+(err.message||err))}
+}
+
+function xlsxExport(){
+ try{
+  const rows=exportRows();
+  if(!rows.length){alert('Walang records na ie-export. I-clear ang search/filter o mag-save muna ng record.');return}
+  if(!window.XLSX){alert('Hindi ma-load ang Excel export library. Suriin ang internet o gumamit muna ng CSV.');return}
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:22},{wch:14},{wch:12},{wch:28},{wch:14},{wch:22},{wch:24},{wch:20},{wch:32}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Inventory History');
+  const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  download(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),
+   'erfcaps-inventory-'+new Date().toISOString().slice(0,10)+'.xlsx');
+ }catch(err){alert('Excel export error: '+(err.message||err))}
+}
+
+function backup(){
+ try{
+  download(new Blob([JSON.stringify({app:'ErfCaps Inventory',version:4,exportedAt:nowISO(),records},null,2)],{type:'application/json'}),
+   'erfcaps-inventory-backup-'+new Date().toISOString().slice(0,10)+'.json');
+ }catch(err){alert('Backup error: '+(err.message||err))}
+}
+
+$('startBtn').addEventListener('click',startScanner);
+$('stopBtn').addEventListener('click',stopScanner);
+$('saveBtn').addEventListener('click',saveRecord);
+$('clearFormBtn').addEventListener('click',()=>{
+ $('qrValue').value='';$('notes').value='';setStatus('Handa nang mag-scan.');
+});
+$('platform').addEventListener('change',updateSelection);
+$('batch').addEventListener('change',updateSelection);
+$('scanType').addEventListener('change',updateLocationLaneVisibility);
+$('filterPlatform').addEventListener('change',render);
+$('filterBatch').addEventListener('change',render);
+$('searchBox').addEventListener('input',render);
+$('csvBtn').addEventListener('click',csvExport);
+$('xlsxBtn').addEventListener('click',xlsxExport);
+$('jsonBtn').addEventListener('click',backup);
+
+$('historyBody').addEventListener('click',e=>{
+ const id=e.target?.dataset?.delete;
+ if(id&&confirm('I-delete ang record na ito?')){
+  records=records.filter(r=>r.id!==id);persist();
+ }
+});
+
+$('deleteAllBtn').addEventListener('click',()=>{
+ if(confirm('Sigurado ka bang buburahin lahat ng records? Mag-backup muna kung kailangan.')){
+  records=[];persist();
+ }
+});
+
+$('restoreFile').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{
+  const data=JSON.parse(await f.text());
+  const incoming=Array.isArray(data)?data:data.records;
+  if(!Array.isArray(incoming))throw new Error('Hindi valid na backup file');
+  if(confirm('Idadagdag ang '+incoming.length+' records sa kasalukuyang history?')){
+   const ids=new Set(records.map(r=>r.id));
+   incoming.forEach(r=>{
+    if(!r.id||ids.has(r.id))r.id='restore-'+Date.now()+'-'+Math.random();
+    records.push(r);
+   });
+   persist();alert('Restore complete.');
+  }
+ }catch(err){alert('Hindi ma-restore: '+err.message)}
+ e.target.value='';
+});
+
+window.addEventListener('beforeunload',()=>{if(scanning)stopScanner()});
+updateSelection();
+updateLocationLaneVisibility();
 render();
 })();
 </script>
